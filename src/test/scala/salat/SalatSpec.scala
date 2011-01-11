@@ -74,7 +74,52 @@ object SalatSpec extends Specification with PendingUntilFixed with CasbahLogging
         f_* must_== f
       }
     }
+
+    "persist and retrieve sorted things" in {
+
+      val arbitraryOrdering = new Ordering[String] {
+        def compare(x: String, y: String) = if (x.length == y.length) x.compare(y) else x.length.compare(y.length)
+      }
+
+      val expectedOrder = Seq("kings", "ships", "shoes", "cabbages", "sealing wax")
+      val walrus = Walrus(Seq("shoes", "ships", "sealing wax", "cabbages", "kings").sorted(arbitraryOrdering))
+
+      walrus.manyThings mustEqual expectedOrder
+      "a case class with a sorted list" in {
+        val dbo: MongoDBObject = grater[Walrus[String]].asDBObject(walrus)
+        dbo.get("manyThings") must beSome[AnyRef]
+
+        val walrus_* = grater[Walrus[String]].asObject(dbo)
+        walrus_*.manyThings mustEqual expectedOrder
+      }
+
+      "a case class with a sorted list of case classes with sorted lists" in {
+        val expectedOrder2 = Seq("is", "and", "hot", "sea", "the", "why", "boiling")
+        val walrus2 = Walrus(Seq("and", "why", "the", "sea", "is", "boiling", "hot").sorted(arbitraryOrdering))
+        walrus2.manyThings mustEqual expectedOrder2
+        val expectedOrder3 = Seq("?", "and", "have", "pigs", "wings", "whether")
+        val walrus3 = Walrus(Seq("and", "whether", "pigs", "have", "wings", "?").sorted(arbitraryOrdering))
+        walrus3.manyThings mustEqual expectedOrder3
+
+        val expectedHerd = Seq(walrus2, walrus3, walrus)
+        val herd = Walrus(manyThings = Seq(walrus, walrus2, walrus3).sorted(new Ordering[Walrus[String]] {
+          def compare(x: Walrus[String], y: Walrus[String]) = y.manyThings.length.compare(x.manyThings.length)
+        }))
+        herd.manyThings mustEqual expectedHerd
+
+        val dbo: MongoDBObject = grater[Walrus[Walrus[String]]].asDBObject(herd)
+        dbo.get("manyThings") must beSome[AnyRef]
+
+        val herd_* = grater[Walrus[Walrus[String]]].asObject(dbo)
+        herd_*.manyThings mustEqual expectedHerd
+        herd_*.manyThings(0).manyThings mustEqual expectedOrder2
+        herd_*.manyThings(1).manyThings mustEqual expectedOrder3
+        herd_*.manyThings(2).manyThings mustEqual expectedOrder
+      }
+    }
   }
+
+
 
   "usage example for the README" should {
     val deflate_me = evil_empire
