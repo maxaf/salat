@@ -74,7 +74,7 @@ object SalatSpec extends Specification with PendingUntilFixed with CasbahLogging
         f_* must_== f
       }
 
-      "also also objects with lazy values" in {
+      "and handle objects with lazy values" in {
         val l = LazyThing(excuses = Seq(1, 2, 3))
         l.firstExcuse must beSome(1)
         l.lastExcuse must beSome(3)
@@ -89,11 +89,11 @@ object SalatSpec extends Specification with PendingUntilFixed with CasbahLogging
         dbo.get("nthDegree") must beNone
 
         val l_* = grater[LazyThing].asObject(dbo)
-        l.excuses mustEqual Seq(1, 2, 3)
-        l.firstExcuse must beSome(1)
-        l.lastExcuse must beSome(3)
-        l.factorial mustEqual 6
-        l.nthDegree mustEqual Seq(1, 7, 13, 19, 25, 31)
+        l_*.excuses mustEqual Seq(1, 2, 3)
+        l_*.firstExcuse must beSome(1)
+        l_*.lastExcuse must beSome(3)
+        l_*.factorial mustEqual 6
+        l_*.nthDegree mustEqual Seq(1, 7, 13, 19, 25, 31)
       }
     }
 
