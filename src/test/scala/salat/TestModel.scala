@@ -29,6 +29,17 @@ case class Company(name: String, year_of_inception: Int, departments: Map[String
 
 case class Walrus[W](manyThings: Seq[W])
 
+case class LazyThing(excuses: Seq[Int]) {
+  lazy val firstExcuse = excuses.headOption
+  lazy val lastExcuse = excuses.lastOption
+  lazy val factorial = {
+    // the most shiftless way to calculate a factorial, i suppose.... replete with possibility of overflow.
+    def loop(n: Int, acc: Int): Int = if (n <= 0) acc else loop(n - 1, acc * n)
+    loop(excuses.length, 1)
+  }
+  lazy val nthDegree = List.range(1, factorial * factorial, factorial)
+}
+
 @Salat
 trait Node {
   val name: String

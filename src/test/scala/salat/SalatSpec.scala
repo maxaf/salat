@@ -73,6 +73,28 @@ object SalatSpec extends Specification with PendingUntilFixed with CasbahLogging
         val f_* = grater[F].asObject(dbo)
         f_* must_== f
       }
+
+      "also also objects with lazy values" in {
+        val l = LazyThing(excuses = Seq(1, 2, 3))
+        l.firstExcuse must beSome(1)
+        l.lastExcuse must beSome(3)
+        l.factorial mustEqual 6
+        l.nthDegree mustEqual Seq(1, 7, 13, 19, 25, 31) // a lazy value that depends on factorial lazy value
+
+        val dbo: MongoDBObject = grater[LazyThing].asDBObject(l)
+        dbo.get("excuses") must beSome[AnyRef]
+        dbo.get("firstExcuse") must beNone
+        dbo.get("lastExcuse") must beNone
+        dbo.get("factorial") must beNone
+        dbo.get("nthDegree") must beNone
+
+        val l_* = grater[LazyThing].asObject(dbo)
+        l.excuses mustEqual Seq(1, 2, 3)
+        l.firstExcuse must beSome(1)
+        l.lastExcuse must beSome(3)
+        l.factorial mustEqual 6
+        l.nthDegree mustEqual Seq(1, 7, 13, 19, 25, 31)
+      }
     }
 
     "persist and retrieve sorted things" in {
